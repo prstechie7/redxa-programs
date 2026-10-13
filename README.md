@@ -7,35 +7,38 @@ An end-to-end, industrial-grade precision agriculture and autonomous rover platf
 ## 📂 Repository Architecture (`redxa-programs` layout)
 
 ```text
-redxa-programs/ (https://github.com/prstechie7/ml-model)
+redxa-programs/ (https://github.com/prstechie7/redxa-programs)
 ├── README.md                      # Hardware pinouts, setup, and quickstart
 ├── requirements.txt               # Onboard Python dependencies (aarch64 Linux)
 ├── config.json                    # Central pinout, thresholds & baudrate config
 ├── main_rover.py                  # Master system orchestrator (boots all services)
+├── predict.py                     # Production YOLO11n inference for soybean pests
+│
+├── disease_detection/             # Soybean Crop Disease Diagnosis
+│   ├── models/                    # robocrop_soybean_v3_final.pth PyTorch model
+│   ├── src/                       # model.py, predict.py, preprocessing.py, uncertainty_analysis.py
+│   └── test_images/               # Validation field leaf photographs
+│
+├── irrigation/                    # Smart Evapotranspiration & Water Balance Engine
+│   ├── threshold_database.csv     # Crop and soil moisture threshold database
+│   └── src/                       # et0.py, etc.py, soil_water_engine.py, irrigation_decision.py
 │
 ├── core/                          # Drive & Navigation
-│   ├── __init__.py
 │   ├── autonomous_robot.py        # BTS7960 motor control, RC arcade steering & braking
-│   ├── gps_navigator.py           # NEO-M8N UART GPS parsing & field waypoint tracking
-│   └── drone_mesh_bridge.py       # Aerial-to-ground MQTT scouting & dynamic route injector
+│   └── gps_navigator.py           # NEO-M8N UART GPS parsing & field waypoint tracking
 │
 ├── ai/                            # Edge Vision & Diagnostic Models
-│   ├── __init__.py
 │   ├── edge_ai_inference.py       # ONNX runtime engine (runs YOLO11n + MobileNetV2)
-│   └── models/                    # Quantized model weights (.onnx)
+│   └── models/                    # Model weights directory (.onnx)
 │       ├── yolo11n_pest.onnx      # Quantized edge pest detector
 │       └── mobilenetv2_leaf.onnx  # Offline crop disease classifier
 │
 ├── hardware/                      # Sensor & Actuator Drivers
-│   ├── __init__.py
 │   ├── camera_capture.py          # Low-latency camera capture & Laplacian blur filter
 │   ├── sensor_telemetry.py        # 3-depth soil probe ADC & DHT11 temperature/humidity
-│   ├── emergency_calling_agent.py # SIM800L UART voice dialing & GPS SMS dispatch
-│   ├── precision_sprayer.py       # 12V diaphragm pump/solenoid spot-sprayer actuator
-│   └── power_solar_monitor.py     # INA219 I2C 3S Li-ion battery health & solar harvest
+│   └── emergency_calling_agent.py # SIM800L UART voice dialing & GPS SMS dispatch
 │
 ├── tests/                         # Hardware Benchmarking & Pin Tests
-│   ├── __init__.py
 │   ├── test_motors.py             # Forward/reverse ramp & stall current verification
 │   ├── test_sensors.py            # Raw ADC reading & timing verification
 │   └── test_camera.py             # FPS, latency & auto-exposure diagnostic check
