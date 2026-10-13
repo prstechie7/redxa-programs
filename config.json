@@ -1,0 +1,64 @@
+{
+  "platform": "Radxa Qualcomm Edge SBC",
+  "version": "2.0.0-PRO",
+  "board": {
+    "arch": "aarch64",
+    "soc": "Qualcomm Snapdragon / QCS610 / QRB5165 / Radxa Edge",
+    "os": "Debian Linux / Radxa OS"
+  },
+  "drive_system": {
+    "pwm_frequency_hz": 1000,
+    "ramp_accel_step": 15,
+    "max_speed_pwm": 255,
+    "obstacle_stop_dist_cm": 30,
+    "obstacle_slow_dist_cm": 60,
+    "pins": {
+      "left_rpwm": 25,
+      "left_lpwm": 26,
+      "right_rpwm": 27,
+      "right_lpwm": 14,
+      "ultrasonic_trig": 32,
+      "ultrasonic_echo": 33
+    }
+  },
+  "navigation": {
+    "gps_uart_port": "/dev/ttyAMA0",
+    "baudrate": 9600,
+    "arrival_threshold_meters": 1.5,
+    "default_swath_spacing_m": 2.0
+  },
+  "vision_ai": {
+    "camera_device": "/dev/v4l/by-id/usb-Sonix_Technology_Co.__Ltd._USB_Camera_SN0001-video-index0",
+    "fallback_index": 0,
+    "capture_interval_sec": 5,
+    "frame_width": 1280,
+    "frame_height": 720,
+    "yolo_model_path": "ai/models/yolo11n_pest.onnx",
+    "disease_model_path": "ai/models/mobilenetv2_leaf.onnx",
+    "blur_threshold": 80.0,
+    "min_free_disk_mb": 500
+  },
+  "telemetry": {
+    "adc_channels": [34, 35, 32],
+    "dht_pin": 4,
+    "sample_interval_sec": 5,
+    "cloud_sync_url": "https://script.google.com/macros/s/AKfycbzmpfrY4dv6Ls1_if95xEZy2MH6qvEKzUFN0HOptldDANg12ER0CckOBx8M7AKtuNg9/exec"
+  },
+  "actuators": {
+    "pump_relay_pin": 12,
+    "solenoid_valve_pin": 13,
+    "float_switch_pin": 22,
+    "nozzle_flow_rate_ml_s": 25.0
+  },
+  "power_management": {
+    "i2c_bus": 1,
+    "ina219_addr": "0x40",
+    "rtb_threshold_soc": 15.0,
+    "critical_cutoff_soc": 5.0
+  },
+  "emergency_sos": {
+    "modem_uart_port": "/dev/ttyUSB0",
+    "modem_baudrate": 9600,
+    "emergency_phone": "+918319556016"
+  }
+}

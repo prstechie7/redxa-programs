@@ -1,0 +1,14 @@
+[Unit]
+Description=AgriBot Autonomous Rover Edge Daemon (Radxa Qualcomm SBC)
+After=network.target
+
+[Service]
+Type=simple
+User=radxa
+WorkingDirectory=/home/radxa/redxa-programs
+ExecStart=/usr/bin/python3 /home/radxa/redxa-programs/main_rover.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
