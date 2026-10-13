@@ -12,7 +12,7 @@ import math
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
-from irrigation.src.soil_water_engine import (
+from irrigation_model.src.soil_water_engine import (
     SoilWaterEngine,
     SoilWaterParams,
     SoilWaterResult,
@@ -23,11 +23,11 @@ from irrigation.src.soil_water_engine import (
     vwc_percent_to_fraction,
     vwc_fraction_to_percent,
 )
-from irrigation.src.threshold_config import get_threshold_config, get_crop_profile
-from irrigation.src.threshold_database import ThresholdDatabase
-from irrigation.src.preprocessing import SensorPreprocessor
-from irrigation.src.dataset_inspection import DatasetInspector
-from irrigation.src.predict import create_predictor, IrrigationPredictor, ParameterSource
+from irrigation_model.src.threshold_config import get_threshold_config, get_crop_profile
+from irrigation_model.src.threshold_database import ThresholdDatabase
+from irrigation_model.src.preprocessing import SensorPreprocessor
+from irrigation_model.src.dataset_inspection import DatasetInspector
+from irrigation_model.src.predict import create_predictor, IrrigationPredictor, ParameterSource
 
 
 class TestSoilWaterEngine:
@@ -203,7 +203,7 @@ class TestThresholdDatabase:
 
     def test_evidence_levels_valid(self, db):
         """Test all records have valid evidence levels."""
-        from irrigation.src.config import VALID_EVIDENCE_LEVELS
+        from irrigation_model.src.config import VALID_EVIDENCE_LEVELS
         all_records = db.get_all()
         for _, row in all_records.iterrows():
             assert row["evidence_level"] in VALID_EVIDENCE_LEVELS
@@ -340,8 +340,8 @@ class TestVerificationSafety:
 
     def test_unverified_fc_cannot_be_silently_used(self):
         """Unverified FC cannot be silently used in engine initialization."""
-        from irrigation.src.predict import IrrigationPredictor, ParameterSource
-        from irrigation.src.threshold_config import get_threshold_config
+        from irrigation_model.src.predict import IrrigationPredictor, ParameterSource
+        from irrigation_model.src.threshold_config import get_threshold_config
 
         predictor = create_predictor(
             crop="soybean",
@@ -366,7 +366,7 @@ class TestVerificationSafety:
 
     def test_unverified_pwp_cannot_be_silently_used(self):
         """Unverified PWP cannot be silently used in engine initialization."""
-        from irrigation.src.threshold_config import get_threshold_config
+        from irrigation_model.src.threshold_config import get_threshold_config
 
         config = get_threshold_config()
 
@@ -383,7 +383,7 @@ class TestVerificationSafety:
 
     def test_user_supplied_fc_classified_user_supplied(self):
         """User-supplied FC is classified as USER_SUPPLIED."""
-        from irrigation.src.predict import IrrigationPredictor, ParameterSource
+        from irrigation_model.src.predict import IrrigationPredictor, ParameterSource
 
         predictor = create_predictor(
             crop="soybean",
@@ -407,7 +407,7 @@ class TestVerificationSafety:
 
     def test_missing_required_parameter_raises_clear_error(self):
         """Missing required agricultural parameter produces a clear error."""
-        from irrigation.src.predict import IrrigationPredictor
+        from irrigation_model.src.predict import IrrigationPredictor
 
         predictor = create_predictor(
             crop="soybean",
@@ -430,7 +430,7 @@ class TestVerificationSafety:
 
     def test_mp_soybean_lookup_identifies_calibration_needs(self):
         """MP soybean lookup identifies parameters that still require calibration."""
-        from irrigation.src.threshold_config import get_threshold_config
+        from irrigation_model.src.threshold_config import get_threshold_config
 
         config = get_threshold_config()
 
@@ -452,7 +452,7 @@ class TestVerificationSafety:
 
     def test_seasonal_water_requirement_not_trigger(self):
         """Seasonal water requirement cannot be used as instantaneous trigger."""
-        from irrigation.src.predict import IrrigationPredictor
+        from irrigation_model.src.predict import IrrigationPredictor
 
         predictor = create_predictor(
             crop="soybean",
@@ -469,7 +469,7 @@ class TestVerificationSafety:
 
     def test_missing_weather_inputs_cannot_produce_fabricated_et0(self):
         """Missing weather inputs cannot produce fabricated ET0."""
-        from irrigation.src.feature_engineering import FeatureEngineer
+        from irrigation_model.src.feature_engineering import FeatureEngineer
 
         engineer = FeatureEngineer()
 
@@ -493,7 +493,7 @@ class TestVerificationSafety:
 
     def test_verified_research_records_remain_accessible(self):
         """Verified research records remain accessible after schema changes."""
-        from irrigation.src.threshold_database import ThresholdDatabase
+        from irrigation_model.src.threshold_database import ThresholdDatabase
 
         db = ThresholdDatabase()
 
@@ -509,7 +509,7 @@ class TestVerificationSafety:
 
     def test_vpd_requires_air_temperature_and_humidity(self):
         """VPD calculation requires both air_temperature and air_humidity."""
-        from irrigation.src.feature_engineering import FeatureEngineer
+        from irrigation_model.src.feature_engineering import FeatureEngineer
 
         engineer = FeatureEngineer()
 
@@ -524,7 +524,7 @@ class TestVerificationSafety:
 
     def test_soil_water_depletion_requires_soil_moisture(self):
         """Soil water depletion calculation requires soil_moisture column."""
-        from irrigation.src.feature_engineering import FeatureEngineer
+        from irrigation_model.src.feature_engineering import FeatureEngineer
 
         engineer = FeatureEngineer()
 
@@ -538,7 +538,7 @@ class TestVerificationSafety:
 
     def test_soil_water_depletion_validates_fc_gt_pwp(self):
         """Soil water depletion validates FC > PWP."""
-        from irrigation.src.feature_engineering import FeatureEngineer
+        from irrigation_model.src.feature_engineering import FeatureEngineer
 
         engineer = FeatureEngineer()
 
@@ -794,7 +794,7 @@ class TestIrrigationDecisionEngine:
 
     def test_normal_moisture_no_irrigation(self):
         """Normal moisture (above MAD) -> no irrigation."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need, EvidenceLevel
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need, EvidenceLevel
 
         # Use user-supplied MAD to test the decision logic
         decision = calculate_irrigation_need(
@@ -823,7 +823,7 @@ class TestIrrigationDecisionEngine:
 
     def test_high_depletion_irrigation_required_with_valid_threshold(self):
         """High depletion -> irrigation required when valid operational threshold supplied."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need
 
         decision = calculate_irrigation_need(
             crop="soybean",
@@ -848,7 +848,7 @@ class TestIrrigationDecisionEngine:
 
     def test_moisture_at_fc(self):
         """Moisture at field capacity -> no irrigation."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need
 
         decision = calculate_irrigation_need(
             crop="soybean",
@@ -871,7 +871,7 @@ class TestIrrigationDecisionEngine:
 
     def test_moisture_near_pwp(self):
         """Moisture near PWP -> irrigation required."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need
 
         decision = calculate_irrigation_need(
             crop="soybean",
@@ -893,7 +893,7 @@ class TestIrrigationDecisionEngine:
 
     def test_moisture_below_pwp_rejected(self):
         """Moisture below PWP -> should raise error."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need
 
         with pytest.raises(ValueError, match="soil_moisture must be in"):
             calculate_irrigation_need(
@@ -909,7 +909,7 @@ class TestIrrigationDecisionEngine:
 
     def test_invalid_fc_pwp_rejected(self):
         """FC <= PWP -> should raise error."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need
 
         with pytest.raises(ValueError, match="PWP < FC|0 <= PWP < FC"):
             calculate_irrigation_need(
@@ -927,7 +927,7 @@ class TestIrrigationDecisionEngine:
 
     def test_invalid_root_depth_rejected(self):
         """Negative root zone depth -> should raise error."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need
 
         with pytest.raises(ValueError, match="root_zone_depth_cm must be positive"):
             calculate_irrigation_need(
@@ -945,7 +945,7 @@ class TestIrrigationDecisionEngine:
 
     def test_percentage_vs_fraction_conversion(self):
         """Test percent vs fraction moisture input."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need
 
         # 30% as percent
         decision_pct = calculate_irrigation_need(
@@ -980,7 +980,7 @@ class TestIrrigationDecisionEngine:
 
     def test_missing_parameters_raises_error(self):
         """Missing required soil parameters -> clear error."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need
 
         with pytest.raises(ValueError, match="Missing required soil parameters|field_capacity|permanent_wilting_point|root_zone_depth"):
             calculate_irrigation_need(
@@ -996,7 +996,7 @@ class TestIrrigationDecisionEngine:
 
     def test_mp_soybean_vertisol_mad_requires_calibration(self):
         """MP soybean Vertisol with MAD requiring calibration."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need, EvidenceLevel
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need, EvidenceLevel
 
         # Try without user-supplied MAD - should report calibration required
         decision = calculate_irrigation_need(
@@ -1023,7 +1023,7 @@ class TestIrrigationDecisionEngine:
 
     def test_asmd_never_converted_to_mad(self):
         """ASMD is never automatically converted to MAD."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need, ThresholdType, EvidenceLevel
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need, ThresholdType, EvidenceLevel
 
         # Use existing IGP ASMD record (50% ASMD from IGP Vertisol/Inceptisol research)
         decision = calculate_irrigation_need(
@@ -1062,7 +1062,7 @@ class TestIrrigationDecisionEngine:
 
     def test_iwcpe_never_converted_to_asmd(self):
         """IW:CPE is never automatically converted to ASMD."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need, ThresholdType
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need, ThresholdType
 
         decision = calculate_irrigation_need(
             crop="soybean",
@@ -1090,7 +1090,7 @@ class TestIrrigationDecisionEngine:
 
     def test_research_contextual_values_identified(self):
         """Research/contextual values are clearly identified in output."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need, EvidenceLevel
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need, EvidenceLevel
 
         decision = calculate_irrigation_need(
             crop="soybean",
@@ -1123,7 +1123,7 @@ class TestIrrigationDecisionEngine:
 
     def test_soybean_kc_stage_selection(self):
         """Soybean Kc stage selection works correctly."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need
 
         for stage in ["initial", "development", "mid", "late"]:
             decision = calculate_irrigation_need(
@@ -1146,7 +1146,7 @@ class TestIrrigationDecisionEngine:
 
     def test_explanation_contains_parameters_used(self):
         """Explanation contains actual parameters used."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need
 
         decision = calculate_irrigation_need(
             crop="soybean",
@@ -1178,7 +1178,7 @@ class TestIrrigationDecisionEngine:
 
     def test_mp_soybean_with_user_mad_override(self):
         """User MAD override takes precedence and is marked USER_SUPPLIED."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need, EvidenceLevel
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need, EvidenceLevel
 
         decision = calculate_irrigation_need(
             crop="soybean",
@@ -1202,7 +1202,7 @@ class TestIrrigationDecisionEngine:
 
     def test_decision_to_dict_serializable(self):
         """Decision result can be serialized to dict."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need
 
         decision = calculate_irrigation_need(
             crop="soybean",
@@ -1230,7 +1230,7 @@ class TestIrrigationDecisionEngine:
 
     def test_moisture_above_fc_rejected(self):
         """Moisture above FC -> should raise error."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need
 
         with pytest.raises(ValueError, match="soil_moisture must be in"):
             calculate_irrigation_need(
@@ -1246,7 +1246,7 @@ class TestIrrigationDecisionEngine:
 
     def test_unknown_crop_reports_calibration(self):
         """Unknown crop -> reports calibration required."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need
 
         decision = calculate_irrigation_need(
             crop="unknown_crop",
@@ -1266,7 +1266,7 @@ class TestIrrigationDecisionEngine:
 
     def test_mad_zero_rejected(self):
         """MAD = 0 -> should raise error."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need
 
         with pytest.raises(ValueError, match="MAD must be in"):
             calculate_irrigation_need(
@@ -1284,7 +1284,7 @@ class TestIrrigationDecisionEngine:
 
     def test_mad_above_one_rejected(self):
         """MAD > 1 -> should raise error."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need
 
         with pytest.raises(ValueError, match="MAD must be in"):
             calculate_irrigation_need(
@@ -1302,7 +1302,7 @@ class TestIrrigationDecisionEngine:
 
     def test_output_structure_complete(self):
         """Output decision has all required fields."""
-        from irrigation.src.irrigation_decision import calculate_irrigation_need
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need
 
         decision = calculate_irrigation_need(
             crop="soybean",
@@ -1358,7 +1358,7 @@ class TestWeatherInput:
 
     def test_valid_weather_input(self):
         """Valid weather input should pass validation."""
-        from irrigation.src.weather import WeatherInput, WeatherInputStatus
+        from irrigation_model.src.weather import WeatherInput, WeatherInputStatus
         from datetime import datetime
 
         wi = WeatherInput(
@@ -1379,7 +1379,7 @@ class TestWeatherInput:
 
     def test_invalid_relative_humidity_rejected(self):
         """RH outside 0-100% should be rejected."""
-        from irrigation.src.weather import WeatherInput, WeatherInputStatus
+        from irrigation_model.src.weather import WeatherInput, WeatherInputStatus
         from datetime import datetime
 
         wi = WeatherInput(
@@ -1400,7 +1400,7 @@ class TestWeatherInput:
 
     def test_invalid_rainfall_rejected(self):
         """Negative rainfall should be rejected."""
-        from irrigation.src.weather import WeatherInput, WeatherInputStatus
+        from irrigation_model.src.weather import WeatherInput, WeatherInputStatus
         from datetime import datetime
 
         wi = WeatherInput(
@@ -1421,7 +1421,7 @@ class TestWeatherInput:
 
     def test_invalid_wind_speed_rejected(self):
         """Negative wind speed should be rejected."""
-        from irrigation.src.weather import WeatherInput, WeatherInputStatus
+        from irrigation_model.src.weather import WeatherInput, WeatherInputStatus
         from datetime import datetime
 
         wi = WeatherInput(
@@ -1442,7 +1442,7 @@ class TestWeatherInput:
 
     def test_invalid_solar_radiation_rejected(self):
         """Negative solar radiation should be rejected."""
-        from irrigation.src.weather import WeatherInput, WeatherInputStatus
+        from irrigation_model.src.weather import WeatherInput, WeatherInputStatus
         from datetime import datetime
 
         wi = WeatherInput(
@@ -1463,7 +1463,7 @@ class TestWeatherInput:
 
     def test_invalid_temperature_rejected(self):
         """Temperature outside valid range should be rejected."""
-        from irrigation.src.weather import WeatherInput, WeatherInputStatus
+        from irrigation_model.src.weather import WeatherInput, WeatherInputStatus
         from datetime import datetime
 
         wi = WeatherInput(
@@ -1484,7 +1484,7 @@ class TestWeatherInput:
 
     def test_min_max_temperature_cross_validation(self):
         """Tmin > Tmax should be rejected."""
-        from irrigation.src.weather import WeatherInput, WeatherInputStatus
+        from irrigation_model.src.weather import WeatherInput, WeatherInputStatus
         from datetime import datetime
 
         wi = WeatherInput(
@@ -1505,7 +1505,7 @@ class TestWeatherInput:
 
     def test_insufficient_for_penman_monteith(self):
         """Missing PM inputs should flag insufficient for PM but OK for Hargreaves."""
-        from irrigation.src.weather import WeatherInput, WeatherInputStatus
+        from irrigation_model.src.weather import WeatherInput, WeatherInputStatus
         from datetime import datetime
 
         # Has Tmin/Tmax/latitude for Hargreaves, missing wind/solar/elevation for PM
@@ -1529,7 +1529,7 @@ class TestWeatherInput:
 
     def test_insufficient_for_hargreaves(self):
         """Missing Hargreaves inputs should flag insufficient for Hargreaves."""
-        from irrigation.src.weather import WeatherInput, WeatherInputStatus
+        from irrigation_model.src.weather import WeatherInput, WeatherInputStatus
         from datetime import datetime
 
         # Has wind/solar for PM, missing Tmin/Tmax/latitude for Hargreaves
@@ -1551,7 +1551,7 @@ class TestWeatherInput:
 
     def test_insufficient_for_any_method(self):
         """Missing all critical inputs should flag insufficient for any."""
-        from irrigation.src.weather import WeatherInput, WeatherInputStatus
+        from irrigation_model.src.weather import WeatherInput, WeatherInputStatus
         from datetime import datetime
 
         wi = WeatherInput(
@@ -1564,7 +1564,7 @@ class TestWeatherInput:
 
     def test_can_calculate_penman_monteith(self):
         """Check PM capability detection."""
-        from irrigation.src.weather import WeatherInput
+        from irrigation_model.src.weather import WeatherInput
         from datetime import datetime
 
         wi = WeatherInput(
@@ -1584,7 +1584,7 @@ class TestWeatherInput:
 
     def test_can_calculate_hargreaves(self):
         """Check Hargreaves capability detection."""
-        from irrigation.src.weather import WeatherInput
+        from irrigation_model.src.weather import WeatherInput
         from datetime import datetime
 
         wi = WeatherInput(
@@ -1604,7 +1604,7 @@ class TestWeatherInput:
 
     def test_missing_for_penman_monteith(self):
         """Get missing inputs for PM."""
-        from irrigation.src.weather import WeatherInput
+        from irrigation_model.src.weather import WeatherInput
         from datetime import datetime
 
         wi = WeatherInput(
@@ -1626,7 +1626,7 @@ class TestWeatherInput:
 
     def test_missing_for_hargreaves(self):
         """Get missing inputs for Hargreaves."""
-        from irrigation.src.weather import WeatherInput
+        from irrigation_model.src.weather import WeatherInput
         from datetime import datetime
 
         wi = WeatherInput(
@@ -1648,7 +1648,7 @@ class TestWeatherInput:
 
     def test_to_dict_serializable(self):
         """WeatherInput should be serializable."""
-        from irrigation.src.weather import WeatherInput
+        from irrigation_model.src.weather import WeatherInput
         from datetime import datetime
 
         wi = WeatherInput(
@@ -1676,7 +1676,7 @@ class TestPenmanMonteith:
 
     def test_valid_penman_monteith_calculation(self):
         """Valid PM inputs should produce finite non-negative ET₀."""
-        from irrigation.src.et0 import penman_monteith_et0, ET0Status
+        from irrigation_model.src.et0 import penman_monteith_et0, ET0Status
 
         result = penman_monteith_et0(
             t_mean=25.0,
@@ -1698,7 +1698,7 @@ class TestPenmanMonteith:
 
     def test_penman_monteith_missing_required_input(self):
         """Missing required input should return INSUFFICIENT_DATA."""
-        from irrigation.src.et0 import penman_monteith_et0, ET0Status
+        from irrigation_model.src.et0 import penman_monteith_et0, ET0Status
 
         result = penman_monteith_et0(
             t_mean=25.0,
@@ -1717,7 +1717,7 @@ class TestPenmanMonteith:
 
     def test_penman_monteith_missing_multiple_inputs(self):
         """Multiple missing inputs should all be reported."""
-        from irrigation.src.et0 import penman_monteith_et0, ET0Status
+        from irrigation_model.src.et0 import penman_monteith_et0, ET0Status
 
         result = penman_monteith_et0(
             t_mean=25.0,
@@ -1737,7 +1737,7 @@ class TestPenmanMonteith:
 
     def test_penman_monteith_invalid_rh(self):
         """Invalid RH should return INVALID_INPUT."""
-        from irrigation.src.et0 import penman_monteith_et0, ET0Status
+        from irrigation_model.src.et0 import penman_monteith_et0, ET0Status
 
         result = penman_monteith_et0(
             t_mean=25.0,
@@ -1756,7 +1756,7 @@ class TestPenmanMonteith:
 
     def test_penman_monteith_negative_wind_speed(self):
         """Negative wind speed should return INVALID_INPUT."""
-        from irrigation.src.et0 import penman_monteith_et0, ET0Status
+        from irrigation_model.src.et0 import penman_monteith_et0, ET0Status
 
         result = penman_monteith_et0(
             t_mean=25.0,
@@ -1775,7 +1775,7 @@ class TestPenmanMonteith:
 
     def test_penman_monteith_negative_solar_radiation(self):
         """Negative solar radiation should return INVALID_INPUT."""
-        from irrigation.src.et0 import penman_monteith_et0, ET0Status
+        from irrigation_model.src.et0 import penman_monteith_et0, ET0Status
 
         result = penman_monteith_et0(
             t_mean=25.0,
@@ -1794,7 +1794,7 @@ class TestPenmanMonteith:
 
     def test_penman_monteith_tmin_gt_tmax(self):
         """Tmin > Tmax should return INVALID_INPUT."""
-        from irrigation.src.et0 import penman_monteith_et0, ET0Status
+        from irrigation_model.src.et0 import penman_monteith_et0, ET0Status
 
         result = penman_monteith_et0(
             t_mean=25.0,
@@ -1813,7 +1813,7 @@ class TestPenmanMonteith:
 
     def test_penman_monteith_unit_handling(self):
         """Units should be handled correctly (output in mm/day)."""
-        from irrigation.src.et0 import penman_monteith_et0, ET0Status
+        from irrigation_model.src.et0 import penman_monteith_et0, ET0Status
 
         result = penman_monteith_et0(
             t_mean=25.0,
@@ -1833,7 +1833,7 @@ class TestPenmanMonteith:
 
     def test_penman_monteith_result_contains_method_and_status(self):
         """Result should contain method name and status."""
-        from irrigation.src.et0 import penman_monteith_et0, ET0Status
+        from irrigation_model.src.et0 import penman_monteith_et0, ET0Status
 
         result = penman_monteith_et0(
             t_mean=25.0,
@@ -1853,7 +1853,7 @@ class TestPenmanMonteith:
 
     def test_penman_monteith_output_finite_non_negative(self):
         """ET₀ output should be finite and non-negative for valid inputs."""
-        from irrigation.src.et0 import penman_monteith_et0, ET0Status
+        from irrigation_model.src.et0 import penman_monteith_et0, ET0Status
 
         test_cases = [
             # Cool, humid conditions
@@ -1873,7 +1873,7 @@ class TestPenmanMonteith:
 
     def test_penman_monteith_intermediate_values_present(self):
         """Intermediate values should be populated for debugging."""
-        from irrigation.src.et0 import penman_monteith_et0, ET0Status
+        from irrigation_model.src.et0 import penman_monteith_et0, ET0Status
 
         result = penman_monteith_et0(
             t_mean=25.0,
@@ -1905,8 +1905,8 @@ class TestPenmanMonteith:
 
     def test_penman_monteith_from_weather_input(self):
         """calculate_et0_from_weather_input should work with WeatherInput."""
-        from irrigation.src.et0 import calculate_et0_from_weather_input, ET0Status
-        from irrigation.src.weather import WeatherInput
+        from irrigation_model.src.et0 import calculate_et0_from_weather_input, ET0Status
+        from irrigation_model.src.weather import WeatherInput
         from datetime import datetime
 
         wi = WeatherInput(
@@ -1931,8 +1931,8 @@ class TestPenmanMonteith:
 
     def test_penman_monteith_from_weather_input_insufficient(self):
         """calculate_et0_from_weather_input should report missing inputs."""
-        from irrigation.src.et0 import calculate_et0_from_weather_input, ET0Status
-        from irrigation.src.weather import WeatherInput
+        from irrigation_model.src.et0 import calculate_et0_from_weather_input, ET0Status
+        from irrigation_model.src.weather import WeatherInput
         from datetime import datetime
 
         wi = WeatherInput(
@@ -1955,7 +1955,7 @@ class TestPenmanMonteith:
 
     def test_penman_monteith_to_dict_serializable(self):
         """ET0Result should be serializable."""
-        from irrigation.src.et0 import penman_monteith_et0, ET0Status
+        from irrigation_model.src.et0 import penman_monteith_et0, ET0Status
 
         result = penman_monteith_et0(
             t_mean=25.0,
@@ -1982,7 +1982,7 @@ class TestHargreaves:
 
     def test_valid_hargreaves_calculation(self):
         """Valid Hargreaves inputs should produce finite non-negative ET₀."""
-        from irrigation.src.et0 import hargreaves_et0, ET0Status
+        from irrigation_model.src.et0 import hargreaves_et0, ET0Status
 
         result = hargreaves_et0(
             t_mean=25.0,
@@ -2000,7 +2000,7 @@ class TestHargreaves:
 
     def test_hargreaves_missing_t_mean(self):
         """Missing t_mean should return INSUFFICIENT_DATA."""
-        from irrigation.src.et0 import hargreaves_et0, ET0Status
+        from irrigation_model.src.et0 import hargreaves_et0, ET0Status
 
         result = hargreaves_et0(
             t_mean=None,
@@ -2015,7 +2015,7 @@ class TestHargreaves:
 
     def test_hargreaves_missing_t_min(self):
         """Missing t_min should return INSUFFICIENT_DATA."""
-        from irrigation.src.et0 import hargreaves_et0, ET0Status
+        from irrigation_model.src.et0 import hargreaves_et0, ET0Status
 
         result = hargreaves_et0(
             t_mean=25.0,
@@ -2030,7 +2030,7 @@ class TestHargreaves:
 
     def test_hargreaves_missing_t_max(self):
         """Missing t_max should return INSUFFICIENT_DATA."""
-        from irrigation.src.et0 import hargreaves_et0, ET0Status
+        from irrigation_model.src.et0 import hargreaves_et0, ET0Status
 
         result = hargreaves_et0(
             t_mean=25.0,
@@ -2045,7 +2045,7 @@ class TestHargreaves:
 
     def test_hargreaves_missing_latitude(self):
         """Missing latitude should return INSUFFICIENT_DATA."""
-        from irrigation.src.et0 import hargreaves_et0, ET0Status
+        from irrigation_model.src.et0 import hargreaves_et0, ET0Status
 
         result = hargreaves_et0(
             t_mean=25.0,
@@ -2060,7 +2060,7 @@ class TestHargreaves:
 
     def test_hargreaves_missing_day_of_year(self):
         """Missing day_of_year should return INSUFFICIENT_DATA."""
-        from irrigation.src.et0 import hargreaves_et0, ET0Status
+        from irrigation_model.src.et0 import hargreaves_et0, ET0Status
 
         result = hargreaves_et0(
             t_mean=25.0,
@@ -2075,7 +2075,7 @@ class TestHargreaves:
 
     def test_hargreaves_invalid_latitude(self):
         """Invalid latitude should return INVALID_INPUT."""
-        from irrigation.src.et0 import hargreaves_et0, ET0Status
+        from irrigation_model.src.et0 import hargreaves_et0, ET0Status
 
         result = hargreaves_et0(
             t_mean=25.0,
@@ -2090,7 +2090,7 @@ class TestHargreaves:
 
     def test_hargreaves_invalid_day_of_year(self):
         """Invalid day_of_year should return INVALID_INPUT."""
-        from irrigation.src.et0 import hargreaves_et0, ET0Status
+        from irrigation_model.src.et0 import hargreaves_et0, ET0Status
 
         result = hargreaves_et0(
             t_mean=25.0,
@@ -2105,7 +2105,7 @@ class TestHargreaves:
 
     def test_hargreaves_tmin_gt_tmax(self):
         """Tmin > Tmax should return INVALID_INPUT."""
-        from irrigation.src.et0 import hargreaves_et0, ET0Status
+        from irrigation_model.src.et0 import hargreaves_et0, ET0Status
 
         result = hargreaves_et0(
             t_mean=25.0,
@@ -2120,7 +2120,7 @@ class TestHargreaves:
 
     def test_hargreaves_invalid_temperature(self):
         """Temperature outside valid range should return INVALID_INPUT."""
-        from irrigation.src.et0 import hargreaves_et0, ET0Status
+        from irrigation_model.src.et0 import hargreaves_et0, ET0Status
 
         result = hargreaves_et0(
             t_mean=100.0,  # Invalid
@@ -2135,7 +2135,7 @@ class TestHargreaves:
 
     def test_hargreaves_output_finite_non_negative(self):
         """ET₀ output should be finite and non-negative for valid inputs."""
-        from irrigation.src.et0 import hargreaves_et0, ET0Status
+        from irrigation_model.src.et0 import hargreaves_et0, ET0Status
 
         test_cases = [
             # Cool conditions
@@ -2157,7 +2157,7 @@ class TestHargreaves:
 
     def test_hargreaves_correct_method_and_status(self):
         """Result should contain correct method name and status."""
-        from irrigation.src.et0 import hargreaves_et0, ET0Status
+        from irrigation_model.src.et0 import hargreaves_et0, ET0Status
 
         result = hargreaves_et0(
             t_mean=25.0,
@@ -2172,7 +2172,7 @@ class TestHargreaves:
 
     def test_hargreaves_intermediate_ra_available(self):
         """Intermediate Ra value should be available."""
-        from irrigation.src.et0 import hargreaves_et0, ET0Status
+        from irrigation_model.src.et0 import hargreaves_et0, ET0Status
 
         result = hargreaves_et0(
             t_mean=25.0,
@@ -2193,8 +2193,8 @@ class TestHargreaves:
 
     def test_hargreaves_from_weather_input(self):
         """calculate_et0_from_weather_input_hargreaves should work with WeatherInput."""
-        from irrigation.src.et0 import calculate_et0_from_weather_input_hargreaves, ET0Status
-        from irrigation.src.weather import WeatherInput
+        from irrigation_model.src.et0 import calculate_et0_from_weather_input_hargreaves, ET0Status
+        from irrigation_model.src.weather import WeatherInput
         from datetime import datetime
 
         wi = WeatherInput(
@@ -2218,8 +2218,8 @@ class TestHargreaves:
 
     def test_hargreaves_from_weather_input_insufficient(self):
         """calculate_et0_from_weather_input_hargreaves should report missing inputs."""
-        from irrigation.src.et0 import calculate_et0_from_weather_input_hargreaves, ET0Status
-        from irrigation.src.weather import WeatherInput
+        from irrigation_model.src.et0 import calculate_et0_from_weather_input_hargreaves, ET0Status
+        from irrigation_model.src.weather import WeatherInput
         from datetime import datetime
 
         wi = WeatherInput(
@@ -2242,7 +2242,7 @@ class TestHargreaves:
 
     def test_hargreaves_to_dict_serializable(self):
         """ET0Result from Hargreaves should be serializable."""
-        from irrigation.src.et0 import hargreaves_et0, ET0Status
+        from irrigation_model.src.et0 import hargreaves_et0, ET0Status
 
         result = hargreaves_et0(
             t_mean=25.0,
@@ -2260,8 +2260,8 @@ class TestHargreaves:
 
     def test_calculate_et0_auto_penman_monteith_priority(self):
         """calculate_et0_auto should prefer Penman-Monteith when all inputs available."""
-        from irrigation.src.et0 import calculate_et0_auto, ET0Status
-        from irrigation.src.weather import WeatherInput
+        from irrigation_model.src.et0 import calculate_et0_auto, ET0Status
+        from irrigation_model.src.weather import WeatherInput
         from datetime import datetime
 
         wi = WeatherInput(
@@ -2284,8 +2284,8 @@ class TestHargreaves:
 
     def test_calculate_et0_auto_hargreaves_fallback(self):
         """calculate_et0_auto should fall back to Hargreaves when PM inputs missing."""
-        from irrigation.src.et0 import calculate_et0_auto, ET0Status
-        from irrigation.src.weather import WeatherInput
+        from irrigation_model.src.et0 import calculate_et0_auto, ET0Status
+        from irrigation_model.src.weather import WeatherInput
         from datetime import datetime
 
         wi = WeatherInput(
@@ -2306,8 +2306,8 @@ class TestHargreaves:
 
     def test_calculate_et0_auto_insufficient(self):
         """calculate_et0_auto should report INSUFFICIENT_DATA when neither method works."""
-        from irrigation.src.et0 import calculate_et0_auto, ET0Status
-        from irrigation.src.weather import WeatherInput
+        from irrigation_model.src.et0 import calculate_et0_auto, ET0Status
+        from irrigation_model.src.weather import WeatherInput
         from datetime import datetime
 
         wi = WeatherInput(
@@ -2327,7 +2327,7 @@ class TestHargreaves:
 
     def test_penman_monteith_still_works(self):
         """Verify Penman-Monteith still works unchanged after adding Hargreaves."""
-        from irrigation.src.et0 import penman_monteith_et0, ET0Status
+        from irrigation_model.src.et0 import penman_monteith_et0, ET0Status
 
         result = penman_monteith_et0(
             t_mean=25.0,
@@ -2352,8 +2352,8 @@ class TestETc:
 
     def test_valid_soybean_initial_kc(self):
         """Valid soybean initial Kc should produce ETc."""
-        from irrigation.src.etc import calculate_etc, ETcStatus
-        from irrigation.src.et0 import penman_monteith_et0, ET0Status
+        from irrigation_model.src.etc import calculate_etc, ETcStatus
+        from irrigation_model.src.et0 import penman_monteith_et0, ET0Status
 
         et0_result = penman_monteith_et0(
             t_mean=25.0,
@@ -2387,8 +2387,8 @@ class TestETc:
 
     def test_valid_soybean_development_kc(self):
         """Valid soybean development Kc should produce ETc."""
-        from irrigation.src.etc import calculate_etc, ETcStatus
-        from irrigation.src.et0 import penman_monteith_et0
+        from irrigation_model.src.etc import calculate_etc, ETcStatus
+        from irrigation_model.src.et0 import penman_monteith_et0
 
         et0_result = penman_monteith_et0(
             t_mean=25.0,
@@ -2420,8 +2420,8 @@ class TestETc:
 
     def test_valid_soybean_mid_kc(self):
         """Valid soybean mid Kc should produce ETc."""
-        from irrigation.src.etc import calculate_etc, ETcStatus
-        from irrigation.src.et0 import penman_monteith_et0
+        from irrigation_model.src.etc import calculate_etc, ETcStatus
+        from irrigation_model.src.et0 import penman_monteith_et0
 
         et0_result = penman_monteith_et0(
             t_mean=25.0,
@@ -2453,8 +2453,8 @@ class TestETc:
 
     def test_valid_soybean_late_kc(self):
         """Valid soybean late Kc should produce ETc."""
-        from irrigation.src.etc import calculate_etc, ETcStatus
-        from irrigation.src.et0 import penman_monteith_et0
+        from irrigation_model.src.etc import calculate_etc, ETcStatus
+        from irrigation_model.src.et0 import penman_monteith_et0
 
         et0_result = penman_monteith_et0(
             t_mean=25.0,
@@ -2486,8 +2486,8 @@ class TestETc:
 
     def test_etc_equals_et0_times_kc(self):
         """ETc should equal ET₀ × Kc."""
-        from irrigation.src.etc import calculate_etc, ETcStatus
-        from irrigation.src.et0 import penman_monteith_et0
+        from irrigation_model.src.etc import calculate_etc, ETcStatus
+        from irrigation_model.src.et0 import penman_monteith_et0
 
         et0_result = penman_monteith_et0(
             t_mean=25.0,
@@ -2517,8 +2517,8 @@ class TestETc:
 
     def test_zero_et0(self):
         """Zero ET₀ should produce zero ETc."""
-        from irrigation.src.etc import calculate_etc, ETcStatus
-        from irrigation.src.et0 import ET0Result, ET0Status
+        from irrigation_model.src.etc import calculate_etc, ETcStatus
+        from irrigation_model.src.et0 import ET0Result, ET0Status
 
         et0_result = ET0Result()
         et0_result.et0_mm_day = 0.0
@@ -2540,8 +2540,8 @@ class TestETc:
 
     def test_negative_et0_rejected(self):
         """Negative ET₀ should be rejected."""
-        from irrigation.src.etc import calculate_etc, ETcStatus
-        from irrigation.src.et0 import ET0Result, ET0Status
+        from irrigation_model.src.etc import calculate_etc, ETcStatus
+        from irrigation_model.src.et0 import ET0Result, ET0Status
 
         et0_result = ET0Result()
         et0_result.et0_mm_day = -1.0
@@ -2563,8 +2563,8 @@ class TestETc:
 
     def test_nan_et0_rejected(self):
         """NaN ET₀ should be rejected."""
-        from irrigation.src.etc import calculate_etc, ETcStatus
-        from irrigation.src.et0 import ET0Result, ET0Status
+        from irrigation_model.src.etc import calculate_etc, ETcStatus
+        from irrigation_model.src.et0 import ET0Result, ET0Status
         import math
 
         et0_result = ET0Result()
@@ -2586,8 +2586,8 @@ class TestETc:
 
     def test_unknown_crop(self):
         """Unknown crop should return Kc_NOT_AVAILABLE."""
-        from irrigation.src.etc import calculate_etc, ETcStatus
-        from irrigation.src.et0 import penman_monteith_et0
+        from irrigation_model.src.etc import calculate_etc, ETcStatus
+        from irrigation_model.src.et0 import penman_monteith_et0
 
         et0_result = penman_monteith_et0(
             t_mean=25.0,
@@ -2616,8 +2616,8 @@ class TestETc:
 
     def test_unknown_growth_stage(self):
         """Unknown growth stage should return Kc_NOT_AVAILABLE."""
-        from irrigation.src.etc import calculate_etc, ETcStatus
-        from irrigation.src.et0 import penman_monteith_et0
+        from irrigation_model.src.etc import calculate_etc, ETcStatus
+        from irrigation_model.src.et0 import penman_monteith_et0
 
         et0_result = penman_monteith_et0(
             t_mean=25.0,
@@ -2646,8 +2646,8 @@ class TestETc:
 
     def test_missing_kc_for_context(self):
         """Missing Kc for specific context should return Kc_NOT_AVAILABLE."""
-        from irrigation.src.etc import calculate_etc, ETcStatus
-        from irrigation.src.et0 import penman_monteith_et0
+        from irrigation_model.src.etc import calculate_etc, ETcStatus
+        from irrigation_model.src.et0 import penman_monteith_et0
 
         et0_result = penman_monteith_et0(
             t_mean=25.0,
@@ -2676,8 +2676,8 @@ class TestETc:
 
     def test_invalid_kc(self):
         """Invalid (negative) Kc should be rejected."""
-        from irrigation.src.etc import calculate_etc, ETcStatus, KcInfo
-        from irrigation.src.et0 import ET0Result, ET0Status
+        from irrigation_model.src.etc import calculate_etc, ETcStatus, KcInfo
+        from irrigation_model.src.et0 import ET0Result, ET0Status
 
         et0_result = ET0Result()
         et0_result.et0_mm_day = 5.0
@@ -2691,8 +2691,8 @@ class TestETc:
 
     def test_result_serialization(self):
         """ETcResult should be serializable."""
-        from irrigation.src.etc import calculate_etc, ETcStatus
-        from irrigation.src.et0 import penman_monteith_et0
+        from irrigation_model.src.etc import calculate_etc, ETcStatus
+        from irrigation_model.src.et0 import penman_monteith_et0
 
         et0_result = penman_monteith_et0(
             t_mean=25.0,
@@ -2729,8 +2729,8 @@ class TestETc:
 
     def test_source_evidence_metadata_preserved(self):
         """Kc source and evidence metadata should be preserved in result."""
-        from irrigation.src.etc import calculate_etc, ETcStatus
-        from irrigation.src.et0 import penman_monteith_et0
+        from irrigation_model.src.etc import calculate_etc, ETcStatus
+        from irrigation_model.src.et0 import penman_monteith_et0
 
         et0_result = penman_monteith_et0(
             t_mean=25.0,
@@ -2763,7 +2763,7 @@ class TestETc:
 
     def test_penman_monteith_still_works(self):
         """Verify Penman-Monteith ET₀ still works unchanged."""
-        from irrigation.src.et0 import penman_monteith_et0, ET0Status
+        from irrigation_model.src.et0 import penman_monteith_et0, ET0Status
 
         result = penman_monteith_et0(
             t_mean=25.0,
@@ -2782,7 +2782,7 @@ class TestETc:
 
     def test_hargreaves_still_works(self):
         """Verify Hargreaves ET₀ still works unchanged."""
-        from irrigation.src.et0 import hargreaves_et0, ET0Status
+        from irrigation_model.src.et0 import hargreaves_et0, ET0Status
 
         result = hargreaves_et0(
             t_mean=25.0,
@@ -2797,8 +2797,8 @@ class TestETc:
 
     def test_etc_with_hargreaves_et0(self):
         """ETc should work with Hargreaves ET₀."""
-        from irrigation.src.etc import calculate_etc, ETcStatus
-        from irrigation.src.et0 import hargreaves_et0
+        from irrigation_model.src.etc import calculate_etc, ETcStatus
+        from irrigation_model.src.et0 import hargreaves_et0
 
         et0_result = hargreaves_et0(
             t_mean=25.0,
@@ -2825,8 +2825,8 @@ class TestETc:
 
     def test_etc_units_mm_day(self):
         """ETc units should be mm/day."""
-        from irrigation.src.etc import calculate_etc, ETcStatus
-        from irrigation.src.et0 import penman_monteith_et0
+        from irrigation_model.src.etc import calculate_etc, ETcStatus
+        from irrigation_model.src.et0 import penman_monteith_et0
 
         et0_result = penman_monteith_et0(
             t_mean=25.0,
@@ -2861,7 +2861,7 @@ class TestRainfall:
 
     def test_valid_rainfall(self):
         """Valid rainfall should be preserved exactly."""
-        from irrigation.src.rainfall import process_rainfall, RainfallStatus, EffectiveRainfallStatus
+        from irrigation_model.src.rainfall import process_rainfall, RainfallStatus, EffectiveRainfallStatus
 
         result = process_rainfall(5.0)
 
@@ -2874,7 +2874,7 @@ class TestRainfall:
 
     def test_zero_rainfall(self):
         """Zero rainfall should be valid and preserved."""
-        from irrigation.src.rainfall import process_rainfall, RainfallStatus, EffectiveRainfallStatus
+        from irrigation_model.src.rainfall import process_rainfall, RainfallStatus, EffectiveRainfallStatus
 
         result = process_rainfall(0.0)
 
@@ -2885,7 +2885,7 @@ class TestRainfall:
 
     def test_negative_rainfall_rejected(self):
         """Negative rainfall should be rejected."""
-        from irrigation.src.rainfall import process_rainfall, RainfallStatus
+        from irrigation_model.src.rainfall import process_rainfall, RainfallStatus
 
         result = process_rainfall(-1.0)
 
@@ -2895,7 +2895,7 @@ class TestRainfall:
 
     def test_nan_rainfall_rejected(self):
         """NaN rainfall should be rejected."""
-        from irrigation.src.rainfall import process_rainfall, RainfallStatus
+        from irrigation_model.src.rainfall import process_rainfall, RainfallStatus
         import math
 
         result = process_rainfall(float('nan'))
@@ -2906,7 +2906,7 @@ class TestRainfall:
 
     def test_infinite_rainfall_rejected(self):
         """Infinite rainfall should be rejected."""
-        from irrigation.src.rainfall import process_rainfall, RainfallStatus
+        from irrigation_model.src.rainfall import process_rainfall, RainfallStatus
 
         result = process_rainfall(float('inf'))
 
@@ -2916,7 +2916,7 @@ class TestRainfall:
 
     def test_missing_rainfall_handled(self):
         """Missing (None) rainfall should be handled with MISSING status."""
-        from irrigation.src.rainfall import process_rainfall, RainfallStatus, EffectiveRainfallStatus
+        from irrigation_model.src.rainfall import process_rainfall, RainfallStatus, EffectiveRainfallStatus
 
         result = process_rainfall(None)
 
@@ -2927,7 +2927,7 @@ class TestRainfall:
 
     def test_rainfall_preserved_without_modification(self):
         """Rainfall should be preserved exactly as measured."""
-        from irrigation.src.rainfall import process_rainfall, RainfallStatus
+        from irrigation_model.src.rainfall import process_rainfall, RainfallStatus
 
         test_values = [0.0, 0.1, 1.0, 5.5, 10.0, 50.0, 100.0]
         for val in test_values:
@@ -2937,7 +2937,7 @@ class TestRainfall:
 
     def test_effective_rainfall_not_automatically_assumed(self):
         """Effective rainfall should NOT be automatically calculated."""
-        from irrigation.src.rainfall import process_rainfall, EffectiveRainfallStatus
+        from irrigation_model.src.rainfall import process_rainfall, EffectiveRainfallStatus
 
         result = process_rainfall(10.0)
 
@@ -2947,7 +2947,7 @@ class TestRainfall:
 
     def test_serialization(self):
         """RainfallResult should be serializable."""
-        from irrigation.src.rainfall import process_rainfall
+        from irrigation_model.src.rainfall import process_rainfall
 
         result = process_rainfall(5.0)
         d = result.to_dict()
@@ -2961,8 +2961,8 @@ class TestRainfall:
 
     def test_from_weather_input(self):
         """process_rainfall_from_weather_input should work with WeatherInput."""
-        from irrigation.src.rainfall import process_rainfall_from_weather_input, RainfallStatus
-        from irrigation.src.weather import WeatherInput
+        from irrigation_model.src.rainfall import process_rainfall_from_weather_input, RainfallStatus
+        from irrigation_model.src.weather import WeatherInput
         from datetime import datetime
 
         wi = WeatherInput(
@@ -2986,8 +2986,8 @@ class TestRainfall:
 
     def test_from_weather_input_missing(self):
         """process_rainfall_from_weather_input should handle missing rainfall."""
-        from irrigation.src.rainfall import process_rainfall_from_weather_input, RainfallStatus
-        from irrigation.src.weather import WeatherInput
+        from irrigation_model.src.rainfall import process_rainfall_from_weather_input, RainfallStatus
+        from irrigation_model.src.weather import WeatherInput
         from datetime import datetime
 
         wi = WeatherInput(
@@ -3011,8 +3011,8 @@ class TestRainfall:
 
     def test_existing_tests_still_pass(self):
         """Verify existing ET₀ and ETc tests still pass."""
-        from irrigation.src.et0 import penman_monteith_et0, hargreaves_et0, ET0Status
-        from irrigation.src.etc import calculate_etc, ETcStatus
+        from irrigation_model.src.et0 import penman_monteith_et0, hargreaves_et0, ET0Status
+        from irrigation_model.src.etc import calculate_etc, ETcStatus
 
         # Penman-Monteith
         et0_pm = penman_monteith_et0(
@@ -3043,7 +3043,7 @@ class TestPipelineIntegration:
 
     def test_complete_weather_soil_input(self):
         """Complete weather + soil input should produce full assessment."""
-        from irrigation.src.pipeline import run_irrigation_assessment, PipelineStatus
+        from irrigation_model.src.pipeline import run_irrigation_assessment, PipelineStatus
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -3079,7 +3079,7 @@ class TestPipelineIntegration:
 
     def test_penman_monteith_path(self):
         """Full PM inputs should use Penman-Monteith."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -3113,7 +3113,7 @@ class TestPipelineIntegration:
 
     def test_hargreaves_fallback_path(self):
         """Missing PM inputs should fall back to Hargreaves."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         # Missing wind_speed, solar_radiation, elevation
@@ -3146,7 +3146,7 @@ class TestPipelineIntegration:
 
     def test_et0_unavailable(self):
         """Missing critical inputs should result in ET₀ unavailable."""
-        from irrigation.src.pipeline import run_irrigation_assessment, PipelineStatus
+        from irrigation_model.src.pipeline import run_irrigation_assessment, PipelineStatus
         from datetime import datetime
 
         # Missing minimum_temperature, maximum_temperature, latitude
@@ -3180,7 +3180,7 @@ class TestPipelineIntegration:
 
     def test_kc_available(self):
         """Kc should be available for known crop/stage/context."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -3216,7 +3216,7 @@ class TestPipelineIntegration:
 
     def test_kc_unavailable(self):
         """Unknown crop/stage should report Kc unavailable."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -3249,7 +3249,7 @@ class TestPipelineIntegration:
 
     def test_rainfall_available(self):
         """Measured rainfall should be preserved."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -3282,7 +3282,7 @@ class TestPipelineIntegration:
 
     def test_rainfall_missing(self):
         """Missing rainfall should be handled."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -3316,7 +3316,7 @@ class TestPipelineIntegration:
 
     def test_effective_rainfall_not_calculated(self):
         """Effective rainfall should remain NOT_CALCULATED."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -3349,7 +3349,7 @@ class TestPipelineIntegration:
 
     def test_existing_soil_water_decision_preserved(self):
         """Existing soil-water irrigation decision should be preserved."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         # Low moisture -> irrigation required
@@ -3412,7 +3412,7 @@ class TestPipelineIntegration:
 
     def test_mp_soybean_vertisol_reports_calibration_required(self):
         """MP soybean Vertisol without user MAD should report calibration required."""
-        from irrigation.src.pipeline import run_irrigation_assessment, PipelineStatus
+        from irrigation_model.src.pipeline import run_irrigation_assessment, PipelineStatus
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -3445,7 +3445,7 @@ class TestPipelineIntegration:
 
     def test_asmd_never_converted_to_mad(self):
         """ASMD should never be converted to MAD in pipeline."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -3481,7 +3481,7 @@ class TestPipelineIntegration:
 
     def test_iwcpe_never_converted_to_asmd(self):
         """IW:CPE should never be converted to ASMD."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -3519,7 +3519,7 @@ class TestPipelineIntegration:
 
     def test_final_result_contains_all_sections(self):
         """Final result should contain ET₀ + ETc + rainfall + soil-water info."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -3575,7 +3575,7 @@ class TestPipelineIntegration:
 
     def test_missing_weather_values_explicitly_reported(self):
         """Missing weather values should be explicitly reported."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -3605,7 +3605,7 @@ class TestPipelineIntegration:
 
     def test_invalid_inputs_rejected(self):
         """Invalid inputs should be rejected."""
-        from irrigation.src.pipeline import run_irrigation_assessment, PipelineStatus
+        from irrigation_model.src.pipeline import run_irrigation_assessment, PipelineStatus
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -3637,12 +3637,12 @@ class TestPipelineIntegration:
 
     def test_existing_146_tests_unchanged(self):
         """Verify existing tests still pass by running a sample."""
-        from irrigation.src.soil_water_engine import SoilWaterParams
-        from irrigation.src.et0 import penman_monteith_et0, hargreaves_et0, ET0Status
-        from irrigation.src.etc import calculate_etc, ETcStatus
-        from irrigation.src.rainfall import process_rainfall, RainfallStatus
-        from irrigation.src.weather import WeatherInput, WeatherInputStatus
-        from irrigation.src.irrigation_decision import calculate_irrigation_need
+        from irrigation_model.src.soil_water_engine import SoilWaterParams
+        from irrigation_model.src.et0 import penman_monteith_et0, hargreaves_et0, ET0Status
+        from irrigation_model.src.etc import calculate_etc, ETcStatus
+        from irrigation_model.src.rainfall import process_rainfall, RainfallStatus
+        from irrigation_model.src.weather import WeatherInput, WeatherInputStatus
+        from irrigation_model.src.irrigation_decision import calculate_irrigation_need
         from datetime import datetime
 
         # Soil water
@@ -3697,7 +3697,7 @@ class TestFinalization:
 
     def test_healthy_soil_moisture_complete_weather(self):
         """Healthy soil moisture + complete weather data should return NO_IRRIGATION_REQUIRED."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -3743,7 +3743,7 @@ class TestFinalization:
 
     def test_high_depletion_complete_weather(self):
         """High soil-water depletion + complete weather data should return IRRIGATION_REQUIRED."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -3777,7 +3777,7 @@ class TestFinalization:
 
     def test_penman_monteith_available_selected(self):
         """When PM inputs available, Penman-Monteith should be selected."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -3810,7 +3810,7 @@ class TestFinalization:
 
     def test_hargreaves_fallback_when_pm_unavailable(self):
         """When PM inputs missing, Hargreaves should be used as fallback."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         # Missing wind_speed, solar_radiation, elevation
@@ -3842,7 +3842,7 @@ class TestFinalization:
 
     def test_both_et0_methods_unavailable(self):
         """When both ET₀ methods unavailable, status should reflect INSUFFICIENT_DATA."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         # Missing Tmin, Tmax, latitude, wind, solar - only air_temp, humidity, rainfall
@@ -3873,7 +3873,7 @@ class TestFinalization:
 
     def test_rainfall_zero(self):
         """Rainfall = 0 should be preserved."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -3907,7 +3907,7 @@ class TestFinalization:
 
     def test_rainfall_positive(self):
         """Rainfall > 0 should be preserved."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -3941,7 +3941,7 @@ class TestFinalization:
 
     def test_rainfall_missing(self):
         """Missing rainfall should be handled with NOT_CALCULATED effective rainfall."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -3976,7 +3976,7 @@ class TestFinalization:
 
     def test_missing_wind_solar_radiation(self):
         """Missing wind/solar radiation should trigger Hargreaves fallback."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -4008,7 +4008,7 @@ class TestFinalization:
 
     def test_unknown_crop(self):
         """Unknown crop should report calibration required and Kc missing."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -4042,7 +4042,7 @@ class TestFinalization:
 
     def test_unknown_growth_stage(self):
         """Unknown growth stage should report Kc missing."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -4075,7 +4075,7 @@ class TestFinalization:
 
     def test_mp_soybean_vertisol_no_local_mad(self):
         """MP soybean + Vertisol + no user MAD should report REQUIRES_FIELD_CALIBRATION."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -4108,7 +4108,7 @@ class TestFinalization:
 
     def test_explicit_user_mad(self):
         """Explicit user-supplied MAD should be used and marked USER_SUPPLIED."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -4142,7 +4142,7 @@ class TestFinalization:
 
     def test_invalid_soil_moisture_rejected(self):
         """Invalid soil moisture (outside 0-1) should be rejected."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -4175,7 +4175,7 @@ class TestFinalization:
 
     def test_invalid_weather_input_rejected(self):
         """Invalid weather input (e.g., RH > 100%) should be rejected."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
 
         result = run_irrigation_assessment(
@@ -4207,7 +4207,7 @@ class TestFinalization:
 
     def test_final_result_serialization(self):
         """Final result should be serializable with all required keys."""
-        from irrigation.src.pipeline import run_irrigation_assessment
+        from irrigation_model.src.pipeline import run_irrigation_assessment
         from datetime import datetime
         import json
 

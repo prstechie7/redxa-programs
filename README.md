@@ -12,14 +12,14 @@ redxa-programs/ (https://github.com/prstechie7/redxa-programs)
 ├── requirements.txt               # Onboard Python dependencies (aarch64 Linux)
 ├── config.json                    # Central pinout, thresholds & baudrate config
 ├── main_rover.py                  # Master system orchestrator (boots all services)
-├── predict.py                     # Production YOLO11n inference for soybean pests
+├── predict_model.py                     # Production YOLO11n inference for soybean pests
 │
-├── disease_detection/             # Soybean Crop Disease Diagnosis
+├── disease_detection_model/             # Soybean Crop Disease Diagnosis
 │   ├── models/                    # robocrop_soybean_v3_final.pth PyTorch model
 │   ├── src/                       # model.py, predict.py, preprocessing.py, uncertainty_analysis.py
 │   └── test_images/               # Validation field leaf photographs
 │
-├── irrigation/                    # Smart Evapotranspiration & Water Balance Engine
+├── irrigation_model/                    # Smart Evapotranspiration & Water Balance Engine
 │   ├── threshold_database.csv     # Crop and soil moisture threshold database
 │   └── src/                       # et0.py, etc.py, soil_water_engine.py, irrigation_decision.py
 │
